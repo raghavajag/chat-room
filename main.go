@@ -8,6 +8,7 @@ import (
 
 func main() {
 	s := chat.NewServer()
+	go s.Run()
 	listener, err := net.Listen("tcp", ":8080")
 	if err != nil {
 		panic(err)
@@ -20,6 +21,7 @@ func main() {
 			fmt.Printf("error accepting connection: %s\n", err)
 			continue
 		}
-		go s.NewClient(conn)
+		c := s.NewClient(conn)
+		go c.ReadInput()
 	}
 }
