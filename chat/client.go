@@ -45,6 +45,12 @@ func (c *Client) ReadInput() {
 				client: c,
 				args:   args,
 			}
+		case "/quit":
+			c.commands <- Command{
+				id:     CMD_QUIT,
+				client: c,
+				args:   args,
+			}
 		default:
 			c.err(fmt.Errorf("unknown command: %s", cmd))
 		}

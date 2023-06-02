@@ -2,7 +2,6 @@ package chat
 
 import (
 	"fmt"
-	"log"
 	"net"
 	"strings"
 )
@@ -44,6 +43,8 @@ func (s *Server) Run() {
 			s.join(cmd.client, cmd.args)
 		case CMD_MSG:
 			s.msg(cmd.client, cmd.args)
+		case CMD_QUIT:
+			s.quit(cmd.client)
 		}
 	}
 }
@@ -71,14 +72,20 @@ func (s *Server) join(c *Client, args []string) {
 		s.rooms[roomName] = r
 	}
 	r.members[c.conn.RemoteAddr()] = c
+	s.quitCurrentRoom(c)
 	c.room = r
-	// remove from already joined room if exists.
 	r.broadcast(c, fmt.Sprintf("%s joined the room", c.nick))
 	c.msg(fmt.Sprintf("welcome to %s", roomName))
 }
-
+func (s *Server) quitCurrentRoom(c *Client) {
+	if c.room != nil {
+		oldRoom := s.rooms[c.room.name]
+		delete(s.rooms[c.room.name].members, c.conn.RemoteAddr())
+		oldRoom.broadcast(c, fmt.Sprintf("%s has left the room", c.nick))
+	}
+}
 func (s *Server) quit(c *Client) {
-	log.Printf("client has lefr the chat: %s", c.conn.RemoteAddr().String())
+	c.room.broadcast(c, fmt.Sprintf("%s has left the chat", c.nick))
 	c.msg("mkay!")
 	c.conn.Close()
 }
