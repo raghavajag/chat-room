@@ -33,6 +33,12 @@ func (c *Client) ReadInput() {
 				client: c,
 				args:   args,
 			}
+		case "/join":
+			c.commands <- Command{
+				id:     CMD_JOIN,
+				client: c,
+				args:   args,
+			}
 		default:
 			c.err(fmt.Errorf("unknown command: %s", cmd))
 		}
@@ -40,7 +46,6 @@ func (c *Client) ReadInput() {
 }
 
 func (c *Client) msg(msg string) {
-	fmt.Println(c.nick + " -> " + msg)
 	c.conn.Write([]byte("> " + msg + "\n"))
 }
 

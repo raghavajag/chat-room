@@ -39,11 +39,31 @@ func (s *Server) Run() {
 		switch cmd.id {
 		case CMD_NICK:
 			s.nick(cmd.client, cmd.args)
-
+		case CMD_JOIN:
+			s.join(cmd.client, cmd.args)
 		}
-
 	}
 }
+func (s *Server) join(c *Client, args []string) {
+	if len(args) < 2 {
+		c.msg("room name is required. usage: /join ROOM_NAME")
+		return
+	}
+	roomName := args[1]
+	r, ok := s.rooms[roomName]
+	if !ok {
+		r = &Room{
+			name:    roomName,
+			members: make(map[net.Addr]*Client),
+		}
+		s.rooms[roomName] = r
+	}
+	r.members[c.conn.RemoteAddr()] = c
+	c.room = r
+	r.broadcast(c, fmt.Sprintf("%s joined the room", c.nick))
+	c.msg(fmt.Sprintf("welcome to %s", roomName))
+}
+
 func (s *Server) quit(c *Client) {
 	log.Printf("client has lefr the chat: %s", c.conn.RemoteAddr().String())
 	c.msg("mkay!")
