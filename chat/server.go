@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"strings"
 )
 
 type Server struct {
@@ -41,8 +42,19 @@ func (s *Server) Run() {
 			s.nick(cmd.client, cmd.args)
 		case CMD_JOIN:
 			s.join(cmd.client, cmd.args)
+		case CMD_MSG:
+			s.msg(cmd.client, cmd.args)
 		}
 	}
+}
+func (s *Server) msg(c *Client, args []string) {
+	if len(args) < 2 {
+		c.msg("msg is required. usage: /msg message")
+		return
+	}
+	message := strings.Join(args[1:], " ")
+	c.room.broadcast(c, c.nick+" : "+message)
+
 }
 func (s *Server) join(c *Client, args []string) {
 	if len(args) < 2 {
@@ -60,6 +72,7 @@ func (s *Server) join(c *Client, args []string) {
 	}
 	r.members[c.conn.RemoteAddr()] = c
 	c.room = r
+	// remove from already joined room if exists.
 	r.broadcast(c, fmt.Sprintf("%s joined the room", c.nick))
 	c.msg(fmt.Sprintf("welcome to %s", roomName))
 }
