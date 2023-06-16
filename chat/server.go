@@ -34,6 +34,13 @@ func (s *Server) NewClient(conn net.Conn) *Client {
 		commands: s.commands,
 	}
 }
+func (s *Server) listRooms(c *Client) {
+	var rooms []string
+	for name := range s.rooms {
+		rooms = append(rooms, name)
+	}
+	c.msg(fmt.Sprintf("available rooms: %s", strings.Join(rooms, ", ")))
+}
 func (s *Server) Run() {
 	for cmd := range s.commands {
 		switch cmd.id {
@@ -45,6 +52,8 @@ func (s *Server) Run() {
 			s.msg(cmd.client, cmd.args)
 		case CMD_QUIT:
 			s.quit(cmd.client)
+		case CMD_ROOMS:
+			s.listRooms(cmd.client)
 		}
 	}
 }
